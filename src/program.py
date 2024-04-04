@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 URL = "https://www.santander.pl/tfi/fundusze-inwestycyjne"
 # Get the terminal size
 FUND_LINK_CLASS_NAME = "sbptfi_fund_information_table__table-details-link"
+DICT_INIT_ERR_MSG = "Error: self.link_dict wasn't initialized. Run self._get_links_dict_from_resp() or self._get_links_dict_from_cache() first."
 CACHE_FILE_PATH = "..\\cached_data.txt"
 
 MYFUNDS = {
@@ -13,22 +14,20 @@ MYFUNDS = {
     "Santander Obligacji Korporacyjnych", 
     "Santander Prestiż Technologii i Innowacji",
     "Santander Prestiż Dłużny Krótkoterminowy", 
-    "Santander Obligacji Skarbowych"    
+    "Santander Prestiż Obligacji Korporacyjnych"    
 }
 
 class FundWatcherProgram:
 
     def __init__(self):
 
-        self.url = URL
-        self.cached_data_path = CACHE_FILE_PATH
-        self.link_dict = None
-        self.text = None
-
-
+        self.url              :str  = URL
+        self.cached_data_path :str  = CACHE_FILE_PATH
+        self.link_dict        :dict = dict()
+        self.text             :str  = ''
     
 
-    def _get_links_dict_from_resp(self, resp: requests.Response):
+    def _set_links_dict_from_resp(self, resp: requests.Response) -> None:
 
         self.text = resp.text
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -36,7 +35,7 @@ class FundWatcherProgram:
         self.link_dict = {link.text: link['href'] for link in links}
 
 
-    def _get_links_dict_from_cache(self):
+    def _set_links_dict_from_cache(self) -> None:
 
         try:
             with open(self.cached_data_path, "r", encoding='utf-8') as file:
@@ -49,64 +48,66 @@ class FundWatcherProgram:
             print("Warning: Cache file not found. Fetching data from the website.")
             resp = requests.get(self.url, timeout=5)
             if resp.status_code == 200:
-                self._get_links_dict_from_resp(resp)
+                self._set_links_dict_from_resp(resp)
                 self._cache_data()
             else:
                 print(f"Error: Unable to connect to the website. {resp.status_code}")
                 sys.exit(1)
 
 
-    def _cache_data(self):
+    def _cache_data(self) -> None:
 
-        if isinstance(self.text, str):
+        if not self.text:
+            print(DICT_INIT_ERR_MSG)
 
-            with open(self.cached_data_path, "w", encoding="utf-8") as file:
-                file.write(self.text)
 
-        else:
-            print( "Error: self.text is not a string. Run self._get_links_dict_from_resp() or self._get_links_dict_from_cache() first.")
+        with open(self.cached_data_path, "w", encoding="utf-8") as file:
+            file.write(self.text)
 
-    def _open_link(self, fund_name: str):
 
-        if self.link_dict is not None:
-            link = self.link_dict.get(fund_name)
-            if link is not None:
-                webbrowser.open('https://www.santander.pl' + link)
-            else:
-                print("Error: Fund not found in self.link_dict.")
-                sys.exit(1)
-        else:
-            print("Error: self.link_dict wasn't initialized. Run self._get_links_dict_from_resp() or self._get_links_dict_from_cache() first.")
+    def _open_link(self, fund_name: str) -> None :
+
+        if len(self.link_dict) == 0:
+            print(DICT_INIT_ERR_MSG)
             sys.exit(1)
-    
-    def run(self, use_cache=True):
+
+        link = self.link_dict.get(fund_name)
+        
+        if link is None:
+            print("Error: Fund not found in self.link_dict.")
+            sys.exit(1)
+
+        webbrowser.open('https://www.santander.pl' + link)
+
+
+    def setup(self, use_cache=True) -> None:
 
         if use_cache:
-            self._get_links_dict_from_cache()
+            self._set_links_dict_from_cache()
         else:
             resp = requests.get(self.url, timeout=5)
             if resp.status_code == 200:
-                self._get_links_dict_from_resp(resp)
+                self._set_links_dict_from_resp(resp)
             else:
                 print(f"Error: Unable to connect to the website. {resp.status_code}")
                 sys.exit(1)
 
-    def get_funds_listing(self):
+
+    def get_funds_listing(self) -> list[str]:
         
-        funds: list[str] = []
-        if isinstance(self.link_dict, dict):
-            for fund in self.link_dict.keys():
-                funds.append(fund)
-        else:
-            print("Error: self.link_dict wasn't initialized. Run self._get_links_dict_from_resp() or self._get_links_dict_from_cache() first.")
+        if len(self.link_dict) == 0:
+            print(DICT_INIT_ERR_MSG)
             sys.exit(1)
 
-        return funds
+        return list(self.link_dict.keys())
     
-    def get_links_dict(self):
-        if not isinstance(self.link_dict, dict):
-            print("Error: self.link_dict wasn't initialized. Run self._get_links_dict_from_resp() or self._get_links_dict_from_cache() first.")
+
+    def get_links_dict(self) -> dict[str, str]:
+
+        if len(self.link_dict) == 0:
+            print(DICT_INIT_ERR_MSG)
             sys.exit(1)
+
         return self.link_dict
 
     
