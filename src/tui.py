@@ -1,3 +1,4 @@
+import webbrowser 
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import ScrollableContainer
@@ -7,7 +8,8 @@ from textual.widgets import (
      ListView,
      Header,
      Footer,
-     Label
+     Label,
+     Button
 )
 
 from program import MYFUNDS
@@ -95,7 +97,19 @@ class FundScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         yield Header()
         yield Label(self.link)
+        yield LinkButton(self.link)
         yield Footer()
+
+class LinkButton(Button):
+
+    def __init__(self, link: str):
+        self.link = link
+        return super().__init__("Open link")
+    
+    
+    def on_click(self):
+        webbrowser.open(self.link)
+    
             
 
         
