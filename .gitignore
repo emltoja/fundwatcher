@@ -1,3 +1,6 @@
+#Cached data 
+*.json
+
 # vscode config directory 
 .vscode/
 
