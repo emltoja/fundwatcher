@@ -1,0 +1,4 @@
+FundList {
+    layout: horizontal;
+    background: $boost;
+}
