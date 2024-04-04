@@ -1,4 +1,10 @@
 FundList {
     layout: horizontal;
-    background: $boost;
+}
+FundWatcherApp {
+    background: rgba(51, 51, 51, 1);
+}
+
+FundScreen {
+    background: rgba(51, 51, 51, 1);
 }
