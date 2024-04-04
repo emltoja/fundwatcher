@@ -6,7 +6,6 @@ import json
 from bs4 import BeautifulSoup
 
 URL = "https://www.santander.pl/tfi/fundusze-inwestycyjne"
-# Get the terminal size
 FUND_LINK_CLASS_NAME = "sbptfi_fund_information_table__table-details-link"
 DICT_INIT_ERR_MSG = "Error: self.link_dict wasn't initialized. Run self._get_links_dict_from_resp() or self._get_links_dict_from_cache() first."
 CACHE_FILE_PATH = ".\\cached_data.json"
@@ -31,7 +30,6 @@ class FundWatcherProgram:
 
     def _set_links_dict_from_resp(self, resp: requests.Response) -> None:
 
-        self.text = resp.text
         soup = BeautifulSoup(resp.text, "html.parser")
         links = soup.find_all("a", class_=FUND_LINK_CLASS_NAME)
         self.link_dict = {link.text: link['href'] for link in links}
@@ -42,7 +40,6 @@ class FundWatcherProgram:
         try:
             with open(self.cached_data_path, "r", encoding='utf-8') as file:
                 data = json.load(file)
-                self.text = data['text']
                 self.link_dict = data['links']
 
         except FileNotFoundError:
@@ -58,14 +55,13 @@ class FundWatcherProgram:
 
     def _cache_data(self, file=None) -> None:
 
-        if not self.text:
+        if len(self.link_dict) == 0:
             print(DICT_INIT_ERR_MSG)
 
         if file is None:
             with open(self.cached_data_path, "w", encoding="utf-8") as f:
                 json.dump(
                     {
-                        'text': self.text,
                         'links': self.link_dict,
                         'timestamp': datetime.datetime.now().isoformat()
                     }, f
@@ -73,7 +69,6 @@ class FundWatcherProgram:
         else: 
             json.dump(
                 {
-                    'text': self.text,
                     'links': self.link_dict,
                     'timestamp': datetime.datetime.now().isoformat()
                 }, file
