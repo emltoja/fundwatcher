@@ -39,7 +39,7 @@ class FundWatcherProgram:
 
         try:
             with open(self.cached_data_path, "r", encoding='utf-8') as file:
-                data = json.load(file)
+                data = json.load(file)['FundList']
                 self.link_dict = data['links']
 
         except FileNotFoundError:
@@ -58,21 +58,18 @@ class FundWatcherProgram:
         if len(self.link_dict) == 0:
             print(DICT_INIT_ERR_MSG)
 
+        data = {
+            'FundList': {
+                'links': self.link_dict,
+                'timestamp': datetime.datetime.now().isoformat()
+            }
+        }
+
         if file is None:
             with open(self.cached_data_path, "w", encoding="utf-8") as f:
-                json.dump(
-                    {
-                        'links': self.link_dict,
-                        'timestamp': datetime.datetime.now().isoformat()
-                    }, f
-                )
+                json.dump(data, f)
         else: 
-            json.dump(
-                {
-                    'links': self.link_dict,
-                    'timestamp': datetime.datetime.now().isoformat()
-                }, file
-            )
+            json.dump(data, file)
 
 
     def _open_link(self, fund_name: str) -> None :
@@ -94,7 +91,7 @@ class FundWatcherProgram:
 
         try: 
             with open(self.cached_data_path, "r", encoding='utf-8') as file:
-                data = json.load(file)
+                data = json.load(file)['FundList']
                 timestamp = data['timestamp']
                 if datetime.datetime.fromisoformat(timestamp) < datetime.datetime.now() - datetime.timedelta(days=7):
                     resp = requests.get(self.url, timeout=5)
@@ -133,5 +130,8 @@ class FundWatcherProgram:
             sys.exit(1)
 
         return self.link_dict
+    
+    def get_cached_data_path(self) -> str:
+        return self.cached_data_path
 
     

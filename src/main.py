@@ -6,6 +6,6 @@ if __name__ == '__main__':
     prog = FundWatcherProgram()
     prog.setup()
 
-    application = FundWatcherApp(prog.get_funds_listing(), prog.get_links_dict())
+    application = FundWatcherApp(prog)
     application.run()
         

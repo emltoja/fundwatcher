@@ -1,4 +1,6 @@
 import webbrowser 
+from program import FundWatcherProgram
+from fund import FundData
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import ScrollableContainer
@@ -52,11 +54,16 @@ class FundWatcherApp(App):
         Binding('d', 'toggle_dark', 'Toggle dark mode')
     ]
 
-    def __init__(self, funds: list[str], link_dict: dict[str, str]):
+    def __init__(self, fw_prog: FundWatcherProgram):
         super().__init__()
-        self.funds = funds
-        self.link_dict = link_dict
+        self.fw_prog = fw_prog
+        self.funds = fw_prog.get_funds_listing()
+        self.link_dict = fw_prog.get_links_dict()
         self.fund_list = FundsList(self.funds)
+        self.pricelist = self._get_price_list()
+
+    def _get_price_list(self) -> dict[str, float]:
+        return {fund: FundData(self.fw_prog, fund, "https://www.santander.pl" + self.link_dict.get(fund, "")).get_current_price() for fund in self.funds}
          
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True, name="FUNDWATCHER")
@@ -89,6 +96,7 @@ class FundScreen(ModalScreen):
         self.fund = fund
         self.parent_app = parent 
         self.link = "https://www.santander.pl" + self.parent_app.link_dict.get(self.fund, "") if self.fund in self.parent_app.link_dict else ''
+        self.fundprice = self.parent_app.pricelist.get(self.fund, -1.0)
 
     def on_mount(self) -> None:
         self.title = self.fund
@@ -98,6 +106,7 @@ class FundScreen(ModalScreen):
         yield Header()
         yield Label(self.link)
         yield LinkButton(self.link)
+        yield Label(f"Current price: {self.fundprice}")
         yield Footer()
 
 class LinkButton(Button):
