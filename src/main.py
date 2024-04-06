@@ -1,5 +1,9 @@
-from tui import FundWatcherApp
+'''
+Entry point.
+'''
+
 from program import FundWatcherProgram
+from tui import FundWatcherApp
 
 if __name__ == '__main__':
 
