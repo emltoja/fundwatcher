@@ -1,4 +1,5 @@
 FundList {
+    background: rgba(51, 51, 51, 1);
     layout: horizontal;
 }
 FundWatcherApp {

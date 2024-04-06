@@ -9,11 +9,12 @@ import datetime
 import json
 import requests
 from bs4 import BeautifulSoup
+from printutils import *
 
 URL = "https://www.santander.pl/tfi/fundusze-inwestycyjne"
 FUND_LINK_CLASS_NAME = "sbptfi_fund_information_table__table-details-link"
 DICT_INIT_ERR_MSG = """
-Error: self.link_dict wasn't initialized. Run self._get_links_dict_from_resp() or
+self.link_dict wasn't initialized. Run self._get_links_dict_from_resp() or
 self._get_links_dict_from_cache() first.
 """
 CACHE_FILE_PATH = ".\\cached_data.json"
@@ -55,20 +56,20 @@ class FundWatcherProgram:
                 self.link_dict = data['links']
 
         except FileNotFoundError:
-            print("Warning: Cache file not found. Fetching data from the website.")
+            printwarning("Cache file not found. Fetching data from the website.")
             resp = requests.get(self.url, timeout=5)
             if resp.status_code == 200:
                 self._set_links_dict_from_resp(resp)
                 self._cache_data()
             else:
-                print(f"Error: Unable to connect to the website. {resp.status_code}")
+                printerror(f"Unable to connect to the website. {resp.status_code}")
                 sys.exit(1)
 
 
     def _cache_data(self, file:(TextIOWrapper | None) = None) -> None:
 
         if len(self.link_dict) == 0:
-            print(DICT_INIT_ERR_MSG)
+            printerror(DICT_INIT_ERR_MSG)
 
         data = {
             'FundList': {
@@ -96,13 +97,13 @@ class FundWatcherProgram:
         '''
 
         if len(self.link_dict) == 0:
-            print(DICT_INIT_ERR_MSG)
+            printerror(DICT_INIT_ERR_MSG)
             sys.exit(1)
 
         link = self.link_dict.get(fund_name)
 
         if link is None:
-            print("Error: Fund not found in self.link_dict.")
+            printerror(f"Fund not found in self.link_dict.")
             sys.exit(1)
 
         webbrowser.open('https://www.santander.pl' + link)
@@ -124,18 +125,19 @@ class FundWatcherProgram:
                         self._set_links_dict_from_resp(resp)
                         self._cache_data(file)
                     else:
-                        print(f"Error: Unable to connect to the website. {resp.status_code}")
+                        printerror(f"Unable to connect to the website. {resp.status_code}")
                         sys.exit(1)
                 else:
                     self._set_links_dict_from_cache()
 
         except FileNotFoundError:
+            printwarning("Cache file not found. Fetching data from the website.")
             resp = requests.get(self.url, timeout=5)
             if resp.status_code == 200:
                 self._set_links_dict_from_resp(resp)
                 self._cache_data()
             else:
-                print(f"Error: Unable to connect to the website. {resp.status_code}")
+                printerror(f"Unable to connect to the website. {resp.status_code}")
                 sys.exit(1)
 
 
@@ -144,7 +146,7 @@ class FundWatcherProgram:
     def get_funds_listing(self) -> list[str]:
 
         if len(self.link_dict) == 0:
-            print(DICT_INIT_ERR_MSG)
+            printerror(DICT_INIT_ERR_MSG)
             sys.exit(1)
 
         return list(self.link_dict.keys())
@@ -153,7 +155,7 @@ class FundWatcherProgram:
     def get_links_dict(self) -> dict[str, str]:
 
         if len(self.link_dict) == 0:
-            print(DICT_INIT_ERR_MSG)
+            printerror(DICT_INIT_ERR_MSG)
             sys.exit(1)
 
         return self.link_dict

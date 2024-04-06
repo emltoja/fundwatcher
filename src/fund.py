@@ -8,6 +8,7 @@ import datetime
 import requests
 from bs4 import Tag
 from bs4 import BeautifulSoup
+from printutils import *
 from program import FundWatcherProgram
 
 CURRENT_PRICE_CLASS_NAME = "quotes_single_fund__summary-rate-number"
@@ -46,31 +47,35 @@ class FundData:
                 timestamp = data[f'{self.fundname}']['timestamp']
 
                 if datetime.datetime.now() - datetime.datetime.fromisoformat(timestamp) > datetime.timedelta(hours=1):
-                    print("Warning: Cache file is outdated. Fetching data from the website.")
+                    printwarning("Cache file is outdated. Fetching data from the website.")
                     resp = requests.get(self.url, timeout=5)
                     if resp.status_code == 200:
                         self._set_current_price_from_resp(resp)
                         self._cache_data()
                     else:
-                        print(f"Error: Unable to connect to the website. {resp.status_code}")
+                        printerror(f"Unable to connect to the website. {resp.status_code}")
                         sys.exit(1)
 
                 else:
                     price = data[f'{self.fundname}']['price']
                     if not isinstance(price, float):
-                        print(f"Error: Price is not a float. It is of type {type(price)}")
+                        printerror(f"Price is not a float. It is of type {type(price)}")
                         sys.exit(1)
                     self.current_price = price
 
-        except (FileNotFoundError, KeyError):
+        except FileNotFoundError: 
+            printerror(f"Cache file not found. Please run FundWatcherProgram.setup() first.")
+            sys.exit(1)
 
-            print("Warning: Cache file not found. Fetching data from the website.")
+        except KeyError:
+
+            printwarning(f"Price for {self.fundname} not found. Fetching data from the website.")
             resp = requests.get(self.url, timeout=5)
             if resp.status_code == 200:
                 self._set_current_price_from_resp(resp)
                 self._cache_data()
             else:
-                print(f"Error: Unable to connect to the website. {resp.status_code}")
+                printerror(f"Unable to connect to the website. {resp.status_code}")
                 sys.exit(1)
 
 
