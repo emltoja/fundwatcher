@@ -8,15 +8,16 @@ from textual.binding import Binding, BindingType
 from textual.containers import ScrollableContainer
 from textual.screen import ModalScreen
 from textual.widgets import (
-     ListItem,
-     ListView,
-     Header,
-     Footer,
-     Label,
-     Button
+    ListItem,
+    ListView,
+    Header,
+    Footer,
+    Label,
+    Button
 )
 from program import FundWatcherProgram, MYFUNDS
 from fund import FundData
+
 
 class FundItem(ListItem):
 
@@ -32,8 +33,6 @@ class FundItem(ListItem):
     def render(self) -> str:
         fund_color = 'green' if self.fund in MYFUNDS else 'red'
         return f"[bold {fund_color if not self.color else self.color}] {self.fund} [/]"
-
-
 
 
 class FundsList(ListView):
@@ -79,8 +78,9 @@ class FundWatcherApp(App):
 
     def _get_price_dict(self) -> dict[str, float]:
         return {
-            fund: FundData(self.fw_prog, fund, self._construct_link(fund)).get_current_price()
-                for fund in self.funds
+            fund: FundData(self.fw_prog, fund, self._construct_link(
+                fund)).get_current_price()
+            for fund in self.funds
         }
 
     def compose(self) -> ComposeResult:
@@ -101,6 +101,7 @@ class FundWatcherApp(App):
             raise ValueError("Expected FundItem")
         self.push_screen(FundScreen(event.item.fund, self))
 
+
 class FundScreen(ModalScreen):
 
     '''
@@ -119,6 +120,8 @@ class FundScreen(ModalScreen):
         self.parent_app = parent
         self.link = self.parent_app._construct_link(self.fund)
         self.fundprice = self.parent_app.pricelist.get(self.fund, -1.0)
+        # self.graph = FundData(self.parent_app.fw_prog, self.fund, self.link).get_graph()
+        #
 
     def on_mount(self) -> None:
         self.title = self.fund
@@ -127,18 +130,20 @@ class FundScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         yield Header()
         yield LinkButton(self.link)
+        # yield Label(f"Graph: {self.graph}")
         yield Label(f"Current price: {self.fundprice}")
         yield Footer()
+
 
 class LinkButton(Button):
 
     '''
     Button to open the link in the browser
     '''
+
     def __init__(self, link: str):
         self.link = link
         super().__init__("Open link")
-
 
     def on_click(self):
         webbrowser.open(self.link)
