@@ -1,14 +1,17 @@
 '''
 Fund data class
 '''
-
 import sys
 import json
 import datetime
 import requests
 from bs4 import Tag
 from bs4 import BeautifulSoup
-from printutils import *
+from printutils import (
+    printerror,
+    printinfo,
+    printwarning
+)
 from program import FundWatcherProgram
 
 CURRENT_PRICE_CLASS_NAME = "quotes_single_fund__summary-rate-number"
@@ -72,7 +75,7 @@ class FundData:
             sys.exit(1)
 
         except KeyError:
-            printwarning(
+            printinfo(
                 f"Graph for {self.fundname} not found. Fetching data from the website.")
             resp = requests.get(self.url, timeout=5)
             if resp.status_code == 200:
@@ -91,7 +94,7 @@ class FundData:
                 timestamp = data[f'{self.fundname}']['timestamp']
 
                 if datetime.datetime.now() - datetime.datetime.fromisoformat(timestamp) > datetime.timedelta(hours=1):
-                    printwarning(
+                    printinfo(
                         "Cache file is outdated. Fetching data from the website.")
                     resp = requests.get(self.url, timeout=5)
                     if resp.status_code == 200:
@@ -117,7 +120,7 @@ class FundData:
 
         except KeyError:
 
-            printwarning(
+            printinfo(
                 f"Price for {self.fundname} not found. Fetching data from the website.")
             resp = requests.get(self.url, timeout=5)
             if resp.status_code == 200:
